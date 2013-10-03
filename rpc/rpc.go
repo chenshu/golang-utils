@@ -16,6 +16,8 @@ type Client struct {
     *http.Client
 }
 
+var DefaultClient = Client{ http.DefaultClient }
+
 func (r Client) PostWithForm(req_url string, headers map[string][]string, params map[string][]string) (resp *http.Response, err error) {
     var body string = url.Values(params).Encode()
     headers["Content-Type"] = []string{"application/x-www-form-urlencoded"}

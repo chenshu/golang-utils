@@ -6,8 +6,11 @@ import (
     "strings"
     "net/url"
     "net/http"
+    "encoding/json"
     "mime/multipart"
 )
+
+var UserAgent = "Golang rpc package"
 
 type Client struct {
     *http.Client
@@ -48,6 +51,31 @@ func (r Client) PostWithMultiPartData(req_url string, headers map[string][]strin
     return r.Post(req_url, headers, buffer, int64(buffer.Len()))
 }
 
+func (r Client) PostWithJson(req_url string, headers map[string][]string, data interface{}) (resp *http.Response, err error) {
+    body, err := json.Marshal(data)
+    if err != nil {
+        return
+    }
+    headers["Content-Type"] = []string{"application/json"}
+    return r.Post(req_url, headers, bytes.NewReader(body), int64(len(body)))
+}
+
+func (r Client) Get(req_url string, headers map[string][]string, params map[string][]string) (resp *http.Response, err error) {
+    if params != nil {
+        req_url += "?" + url.Values(params).Encode()
+    }
+    req, err := http.NewRequest("GET", req_url, nil)
+    if err != nil {
+        return
+    }
+    for k, v := range headers {
+        for _, h := range v {
+            req.Header.Set(k, h)
+        }
+    }
+    return r.Do(req)
+}
+
 func (r Client) Post(req_url string, headers map[string][]string, body io.Reader, content_length int64) (resp *http.Response, err error) {
     req, err := http.NewRequest("POST", req_url, body)
     if err != nil {
@@ -60,4 +88,9 @@ func (r Client) Post(req_url string, headers map[string][]string, body io.Reader
     }
     req.ContentLength = content_length
     return r.Do(req)
+}
+
+func (r Client) Do(req *http.Request) (resp *http.Response, err error) {
+    req.Header.Set("User-Agent", UserAgent)
+    return r.Client.Do(req)
 }

@@ -29,7 +29,7 @@ func (r Client) PostWithData(req_url string, headers map[string][]string, body i
 }
 
 func (r Client) PostWithMultiPartData(req_url string, headers map[string][]string, params map[string][]string, body io.Reader, filename string) (resp *http.Response, err error) {
-    var buffer *bytes.Buffer = bytes.NewBuffer(make([]byte, 0))
+    var buffer *bytes.Buffer = new(bytes.Buffer)
     var writer *multipart.Writer = multipart.NewWriter(buffer)
     for k, v := range params {
         for _, field := range v {
@@ -48,7 +48,10 @@ func (r Client) PostWithMultiPartData(req_url string, headers map[string][]strin
     if err != nil {
         return
     }
-    writer.Close()
+    err = writer.Close()
+    if err != nil {
+        return
+    }
     headers["Content-Type"] = []string{writer.FormDataContentType()}
     return r.Post(req_url, headers, buffer, int64(buffer.Len()))
 }

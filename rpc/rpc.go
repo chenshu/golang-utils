@@ -20,6 +20,9 @@ var DefaultClient = Client{ http.DefaultClient }
 
 func (r Client) PostWithForm(req_url string, headers map[string][]string, params map[string][]string) (resp *http.Response, err error) {
     var body string = url.Values(params).Encode()
+    if headers == nil {
+        headers = make(map[string][]string)
+    }
     headers["Content-Type"] = []string{"application/x-www-form-urlencoded"}
     return r.Post(req_url, headers, strings.NewReader(body), int64(len(body)))
 }
@@ -52,6 +55,9 @@ func (r Client) PostWithMultiPartData(req_url string, headers map[string][]strin
     if err != nil {
         return
     }
+    if headers == nil {
+        headers = make(map[string][]string)
+    }
     headers["Content-Type"] = []string{writer.FormDataContentType()}
     return r.Post(req_url, headers, buffer, int64(buffer.Len()))
 }
@@ -60,6 +66,9 @@ func (r Client) PostWithJson(req_url string, headers map[string][]string, data i
     body, err := json.Marshal(data)
     if err != nil {
         return
+    }
+    if headers == nil {
+        headers = make(map[string][]string)
     }
     headers["Content-Type"] = []string{"application/json"}
     return r.Post(req_url, headers, bytes.NewReader(body), int64(len(body)))
@@ -73,9 +82,11 @@ func (r Client) Get(req_url string, headers map[string][]string, params map[stri
     if err != nil {
         return
     }
-    for k, v := range headers {
-        for _, h := range v {
-            req.Header.Set(k, h)
+    if headers != nil {
+        for k, v := range headers {
+            for _, h := range v {
+                req.Header.Set(k, h)
+            }
         }
     }
     return r.Do(req)
@@ -86,9 +97,11 @@ func (r Client) Post(req_url string, headers map[string][]string, body io.Reader
     if err != nil {
         return
     }
-    for k, v := range headers {
-        for _, h := range v {
-            req.Header.Set(k, h)
+    if headers != nil {
+        for k, v := range headers {
+            for _, h := range v {
+                req.Header.Set(k, h)
+            }
         }
     }
     req.ContentLength = content_length
